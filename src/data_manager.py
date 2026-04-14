@@ -8,7 +8,7 @@ from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
-DATA_DIR = Path(os.environ.get("BABY_BOT_DATA_DIR", "/app/data"))
+DATA_DIR = Path(os.environ.get("BABY_BOT_DATA_DIR", "data"))
 DATA_FILE = DATA_DIR / "status.json"
 
 DEFAULT_USER_STATUS = {
