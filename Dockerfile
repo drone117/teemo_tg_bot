@@ -18,6 +18,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the bot code
 COPY src/ ./src/
 
+# Set PYTHONPATH to include the app directory
+ENV PYTHONPATH=/app
+
 # Create data directory for persistent storage
 RUN mkdir -p /app/data
 
