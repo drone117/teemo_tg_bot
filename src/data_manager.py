@@ -5,8 +5,12 @@ import json
 import logging
 from pathlib import Path
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 logger = logging.getLogger(__name__)
+
+# Set Moscow timezone
+MOSCOW_TZ = ZoneInfo("Europe/Moscow")
 
 DATA_DIR = Path(os.environ.get("BABY_BOT_DATA_DIR", "data"))
 DATA_FILE = DATA_DIR / "status.json"
@@ -73,7 +77,7 @@ def update_user_status(user_id, action, status_value):
     if user_key not in all_data:
         all_data[user_key] = dict(DEFAULT_USER_STATUS)
 
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    now = datetime.now(MOSCOW_TZ).strftime("%Y-%m-%d %H:%M:%S")
     all_data[user_key][action] = status_value
     all_data[user_key][f"{action}_time"] = now
     all_data[user_key]["last_updated"] = now

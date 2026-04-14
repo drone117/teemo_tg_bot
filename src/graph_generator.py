@@ -2,11 +2,15 @@
 
 import io
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+
+# Set Moscow timezone
+MOSCOW_TZ = ZoneInfo("Europe/Moscow")
 
 
 # Configuration for each action type
@@ -36,7 +40,7 @@ def generate_schedule_graph(user_status):
 
     for entry in history:
         try:
-            dt = datetime.strptime(entry["time"], "%Y-%m-%d %H:%M:%S")
+            dt = datetime.strptime(entry["time"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=MOSCOW_TZ)
             if entry["action"] == "feeding":
                 feeding_times.append(dt)
             elif entry["action"] == "sleeping":
