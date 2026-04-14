@@ -15,9 +15,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the bot code
 COPY src/ ./src/
-COPY bot.py .
 
 # Create data directory for persistent storage
 RUN mkdir -p /app/data
 
-CMD ["python", "bot.py"]
+CMD ["python", "src/app.py"]
