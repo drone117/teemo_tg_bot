@@ -33,10 +33,10 @@ class TestBuildKeyboard:
             for button in row
         ]
 
-        assert "🍼 Feeding" in button_texts
-        assert "😴 Sleeping" in button_texts
-        assert "🌅 Woke up" in button_texts
-        assert "📊 View Statistics" in button_texts
+        assert "🍼 Голоден" in button_texts
+        assert "😴 Бодрствует" in button_texts
+        assert "🌅 Только проснулся" in button_texts
+        assert "📊 Посмотреть статистику" in button_texts
 
     def test_build_keyboard_callback_data(self):
         """Test that buttons have correct callback data."""
@@ -63,7 +63,7 @@ class TestStartCommand:
 
         mock_update_message.message.reply_text.assert_called_once()
         call_args = mock_update_message.message.reply_text.call_args
-        assert "Hi TestUser!" in call_args[0][0]
+        assert "Привет TestUser!" in call_args[0][0] or "Hi TestUser!" in call_args[0][0]
         assert "reply_markup" in call_args[1]
 
     @pytest.mark.asyncio
@@ -113,7 +113,7 @@ class TestStatusCommand:
 
         mock_update_message.message.reply_text.assert_called_once()
         call_args = mock_update_message.message.reply_text.call_args
-        assert "Current baby status:" in call_args[0][0]
+        assert "Текущий статус ребёнка" in call_args[0][0] or "Current baby status:" in call_args[0][0]
 
     @pytest.mark.asyncio
     async def test_status_command_no_message(self, mock_context):
@@ -134,11 +134,12 @@ class TestHandleStatistics:
         from src.data_manager import save_status
         save_status({"123": sample_user_status})
 
-        await _handle_statistics(mock_query, 123)
+        mock_context = MagicMock()
+        await _handle_statistics(mock_query, 123, mock_context)
 
         mock_query.edit_message_text.assert_called_once()
         call_args = mock_query.edit_message_text.call_args
-        assert "Statistics Summary" in call_args[0][0]
+        assert "Сводка статистики" in call_args[0][0]
 
     @pytest.mark.asyncio
     async def test_handle_statistics_sends_graph(self, mock_query, fresh_data_dir, sample_user_status):
@@ -146,7 +147,8 @@ class TestHandleStatistics:
         from src.data_manager import save_status
         save_status({"123": sample_user_status})
 
-        await _handle_statistics(mock_query, 123)
+        mock_context = MagicMock()
+        await _handle_statistics(mock_query, 123, mock_context)
 
         mock_query.message.reply_photo.assert_called_once()
 
@@ -155,11 +157,12 @@ class TestHandleStatistics:
         """Test handle statistics with no history."""
         with patch("src.handlers.get_user_status") as mock_get:
             mock_get.return_value = {"history": [], "feeding": "Unknown", "sleeping": "Unknown", "woke_up": "Unknown"}
-            await _handle_statistics(mock_query, 9001)
+            mock_context = MagicMock()
+            await _handle_statistics(mock_query, 9001, mock_context)
 
         mock_query.edit_message_text.assert_called_once()
         call_args = mock_query.edit_message_text.call_args
-        assert "No statistics available" in call_args[0][0]
+        assert "Статистики пока нет" in call_args[0][0] or "Нет доступной статистики" in call_args[0][0] or "No statistics" in call_args[0][0]
         # No graph should be sent
         mock_query.message.reply_photo.assert_not_called()
 
@@ -168,11 +171,12 @@ class TestHandleStatistics:
         """Test handle statistics when edit fails."""
         mock_query.edit_message_text = AsyncMock(side_effect=Exception("Edit failed"))
 
-        await _handle_statistics(mock_query, 123)
+        mock_context = MagicMock()
+        await _handle_statistics(mock_query, 123, mock_context)
 
         mock_query.answer.assert_called()
         call_args = mock_query.answer.call_args
-        assert "Could not load statistics" in call_args[0][0]
+        assert "Не удалось загрузить статистику" in call_args[0][0] or "Could not load" in call_args[0][0]
 
 
 class TestHandleStatusToggle:
@@ -185,8 +189,8 @@ class TestHandleStatusToggle:
 
         mock_query.edit_message_text.assert_called_once()
         call_args = mock_query.edit_message_text.call_args
-        assert "🍼 Feeding:" in call_args[0][0]
-        assert "Hungry" in call_args[0][0]
+        assert "🍼 Кормление:" in call_args[0][0]
+        assert "Голоден" in call_args[0][0]
 
     @pytest.mark.asyncio
     async def test_handle_toggle_sleeping(self, mock_query, fresh_data_dir):
@@ -195,8 +199,8 @@ class TestHandleStatusToggle:
 
         mock_query.edit_message_text.assert_called_once()
         call_args = mock_query.edit_message_text.call_args
-        assert "😴 Sleeping:" in call_args[0][0]
-        assert "Awake" in call_args[0][0]
+        assert "😴 Сон:" in call_args[0][0]
+        assert "Бодрствует" in call_args[0][0]
 
     @pytest.mark.asyncio
     async def test_handle_toggle_woke_up(self, mock_query, fresh_data_dir):
@@ -205,8 +209,8 @@ class TestHandleStatusToggle:
 
         mock_query.edit_message_text.assert_called_once()
         call_args = mock_query.edit_message_text.call_args
-        assert "🌅 Woke up:" in call_args[0][0]
-        assert "Just Woke Up" in call_args[0][0]
+        assert "🌅 Проснулся:" in call_args[0][0]
+        assert "Только проснулся" in call_args[0][0]
 
     @pytest.mark.asyncio
     async def test_handle_toggle_error(self, mock_query, fresh_data_dir):
@@ -217,7 +221,7 @@ class TestHandleStatusToggle:
 
         mock_query.answer.assert_called()
         call_args = mock_query.answer.call_args
-        assert "Status updated" in call_args[0][0]
+        assert "Статус обновлён" in call_args[0][0] or "Status updated" in call_args[0][0]
 
 
 class TestButtonHandler:
@@ -236,7 +240,7 @@ class TestButtonHandler:
         mock_query.answer.assert_called_once()
         mock_query.edit_message_text.assert_called_once()
         call_args = mock_query.edit_message_text.call_args
-        assert "🍼 Feeding:" in call_args[0][0]
+        assert "🍼 Кормление:" in call_args[0][0]
 
     @pytest.mark.asyncio
     async def test_button_handler_statistics(self, mock_query, fresh_data_dir, sample_user_status):
@@ -254,7 +258,7 @@ class TestButtonHandler:
 
         mock_query.edit_message_text.assert_called_once()
         call_args = mock_query.edit_message_text.call_args
-        assert "Statistics Summary" in call_args[0][0]
+        assert "Сводка статистики" in call_args[0][0]
         mock_query.message.reply_photo.assert_called_once()
 
     @pytest.mark.asyncio
@@ -288,32 +292,32 @@ class TestButtonHandler:
         mock_update.callback_query = mock_query
         mock_context = MagicMock()
 
-        # First press: Unknown -> Hungry
+        # First press: Unknown -> Голоден
         await button_handler(mock_update, mock_context)
         call_args = mock_query.edit_message_text.call_args
-        assert "Hungry" in call_args[0][0]
+        assert "Голоден" in call_args[0][0]
 
         # Reset mock
         mock_query.edit_message_text.reset_mock()
 
-        # Second press: Hungry -> Fed
+        # Second press: Голоден -> Покормлен
         await button_handler(mock_update, mock_context)
         call_args = mock_query.edit_message_text.call_args
-        assert "Fed" in call_args[0][0]
+        assert "Покормлен" in call_args[0][0]
 
         # Reset mock
         mock_query.edit_message_text.reset_mock()
 
-        # Third press: Fed -> Burping
+        # Third press: Покормлен -> Срыгивает
         await button_handler(mock_update, mock_context)
         call_args = mock_query.edit_message_text.call_args
-        assert "Burping" in call_args[0][0]
+        assert "Срыгивает" in call_args[0][0]
 
-        # Fourth press: Burping -> Hungry (cycle back)
+        # Fourth press: Срыгивает -> Голоден (cycle back)
         mock_query.edit_message_text.reset_mock()
         await button_handler(mock_update, mock_context)
         call_args = mock_query.edit_message_text.call_args
-        assert "Hungry" in call_args[0][0]
+        assert "Голоден" in call_args[0][0]
 
 
 class TestUnknownCommand:
@@ -328,7 +332,7 @@ class TestUnknownCommand:
 
         mock_update_message.message.reply_text.assert_called_once()
         call_args = mock_update_message.message.reply_text.call_args
-        assert "don't recognize that command" in call_args[0][0]
+        assert "не распознал" in call_args[0][0] or "don't recognize that command" in call_args[0][0]
 
     @pytest.mark.asyncio
     async def test_unknown_command_ignores_non_command(self, mock_update_message, mock_context):

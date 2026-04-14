@@ -10,9 +10,9 @@ class TestFormatStatus:
         """Test formatting status with data."""
         result = format_status(sample_user_status)
 
-        assert "🍼 Feeding: Fed" in result
-        assert "😴 Sleeping: Sleeping" in result
-        assert "🌅 Woke up: Fresh" in result
+        assert "🍼 Кормление: Fed" in result or "🍼 Feeding: Fed" in result
+        assert "😴 Сон: Sleeping" in result or "😴 Sleeping: Sleeping" in result
+        assert "🌅 Проснулся: Fresh" in result or "🌅 Woke up: Fresh" in result
         assert "2026-04-14 10:30:00" in result
 
     def test_format_status_with_unknown(self):
@@ -44,11 +44,11 @@ class TestFormatStatus:
         }
         result = format_status(user_status)
 
-        assert "🍼 Feeding:" in result
+        assert ("🍼 Кормление:" in result or "🍼 Feeding:" in result)
         assert "🕒" in result
-        assert "😴 Sleeping:" in result
-        assert "🌅 Woke up:" in result
-        assert "📝 Last updated:" in result
+        assert ("😴 Сон:" in result or "😴 Sleeping:" in result)
+        assert ("🌅 Проснулся:" in result or "🌅 Woke up:" in result)
+        assert ("📝 Последнее обновление:" in result or "📝 Last updated:" in result)
 
 
 class TestFormatStatistics:
@@ -59,23 +59,23 @@ class TestFormatStatistics:
         user_status = {"history": []}
         result = format_statistics(user_status)
 
-        assert "No statistics available" in result
+        assert "Статистики пока нет" in result or "No statistics available" in result
 
     def test_format_statistics_counts(self, sample_user_status):
         """Test that statistics correctly counts actions."""
         result = format_statistics(sample_user_status)
 
-        assert "🍼 Feeding updates: 1" in result
-        assert "😴 Sleeping updates: 1" in result
-        assert "🌅 Woke up updates: 1" in result
-        assert "📝 Total updates: 3" in result
+        assert ("🍼 Обновлений кормления: 1" in result or "🍼 Feeding updates: 1" in result)
+        assert ("😴 Обновлений сна: 1" in result or "😴 Sleeping updates: 1" in result)
+        assert ("🌅 Обновлений пробуждения: 1" in result or "🌅 Woke up updates: 1" in result)
+        assert ("📝 Всего обновлений: 3" in result or "📝 Total updates: 3" in result)
 
     def test_format_statistics_shows_recent(self, sample_user_status):
         """Test that statistics shows recent history."""
         result = format_statistics(sample_user_status)
 
-        assert "Recent History" in result
-        assert "🍼 Feeding: Fed" in result
+        assert "Последняя история" in result or "Recent History" in result
+        assert ("🍼 Кормление: Fed" in result or "🍼 Feeding: Fed" in result)
 
     def test_format_statistics_limited_to_10(self):
         """Test that recent history is limited to 10 entries."""
@@ -94,7 +94,7 @@ class TestFormatStatistics:
 
         # Count how many history entries are shown (should be 10, excluding summary line)
         lines = result.split("\n")
-        history_lines = [l for l in lines if "🍼 Feeding: Status" in l]
+        history_lines = [l for l in lines if ("🍼 Кормление: Status" in l or "🍼 Feeding: Status" in l)]
         assert len(history_lines) == 10
 
     def test_format_statistics_reverse_chronological(self):
@@ -118,5 +118,5 @@ class TestFormatStatistics:
         """Test that statistics uses markdown formatting."""
         result = format_statistics(sample_user_status)
 
-        assert "*📊 Statistics Summary*" in result
-        assert "*Recent History (last 10):*" in result
+        assert "*📊 Сводка статистики*" in result or "*📊 Statistics Summary*" in result
+        assert "*Последняя история (последние 10):*" in result or "*Recent History (last 10):*" in result

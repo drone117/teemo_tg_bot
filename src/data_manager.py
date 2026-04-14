@@ -24,6 +24,7 @@ DEFAULT_USER_STATUS = {
     "woke_up_time": "Never",
     "history": [],
     "last_updated": "Never",
+    "last_graph_message_id": None,
 }
 
 ACTION_EMOJIS = {

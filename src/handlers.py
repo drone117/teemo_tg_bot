@@ -31,12 +31,26 @@ ACTION_LABELS = {
 }
 
 
-def build_keyboard():
-    """Build the inline keyboard with action buttons."""
+def build_keyboard(user_status=None):
+    """Build the inline keyboard with action buttons.
+    
+    Args:
+        user_status: Optional dict containing current status. If provided, 
+                     button texts will reflect current status values.
+    """
+    if user_status:
+        feeding_text = f"{ACTION_EMOJIS['feeding']} {user_status.get('feeding', 'Unknown')}"
+        sleeping_text = f"{ACTION_EMOJIS['sleeping']} {user_status.get('sleeping', 'Unknown')}"
+        woke_up_text = f"{ACTION_EMOJIS['woke_up']} {user_status.get('woke_up', 'Unknown')}"
+    else:
+        feeding_text = f"{ACTION_EMOJIS['feeding']} {STATUS_OPTIONS['feeding'][0]}"
+        sleeping_text = f"{ACTION_EMOJIS['sleeping']} {STATUS_OPTIONS['sleeping'][0]}"
+        woke_up_text = f"{ACTION_EMOJIS['woke_up']} {STATUS_OPTIONS['woke_up'][0]}"
+    
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("🍼 Кормление", callback_data="feeding")],
-        [InlineKeyboardButton("😴 Сон", callback_data="sleeping")],
-        [InlineKeyboardButton("🌅 Проснулся", callback_data="woke_up")],
+        [InlineKeyboardButton(feeding_text, callback_data="feeding")],
+        [InlineKeyboardButton(sleeping_text, callback_data="sleeping")],
+        [InlineKeyboardButton(woke_up_text, callback_data="woke_up")],
         [InlineKeyboardButton("📊 Посмотреть статистику", callback_data="statistics")],
     ])
 
@@ -54,7 +68,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"Текущий статус:\n"
         f"{format_status(user_status)}\n\n"
         f"Нажмите кнопку, чтобы обновить статус:",
-        reply_markup=build_keyboard(),
+        reply_markup=build_keyboard(user_status),
     )
 
 
@@ -86,16 +100,36 @@ async def status_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-async def _handle_statistics(query, user_id):
+async def _handle_statistics(query, user_id, context):
     """Handle the statistics button press."""
+    from src.data_manager import load_status, save_status
+    
     user_status = get_user_status(user_id)
     stats_text = format_statistics(user_status)
+
+    # Delete previous graph message if it exists
+    all_data = load_status()
+    user_key = str(user_id)
+    last_graph_message_id = all_data.get(user_key, {}).get("last_graph_message_id")
+    
+    if last_graph_message_id is not None:
+        try:
+            await context.bot.delete_message(
+                chat_id=query.message.chat_id,
+                message_id=last_graph_message_id
+            )
+        except Exception as e:
+            logger.error(f"Error deleting previous graph message: {e}")
+        # Clear the stored message ID
+        if user_key in all_data:
+            all_data[user_key]["last_graph_message_id"] = None
+            save_status(all_data)
 
     try:
         await query.edit_message_text(
             stats_text,
             parse_mode="Markdown",
-            reply_markup=build_keyboard(),
+            reply_markup=build_keyboard(user_status),
         )
     except Exception as e:
         logger.error(f"Error editing message: {e}")
@@ -106,10 +140,15 @@ async def _handle_statistics(query, user_id):
     graph_buf = generate_schedule_graph(user_status)
     if graph_buf:
         try:
-            await query.message.reply_photo(
+            graph_message = await query.message.reply_photo(
                 photo=graph_buf,
                 caption="📊 Временная шкала режима ребёнка",
             )
+            # Store the message ID for later deletion
+            all_data = load_status()
+            if user_key in all_data:
+                all_data[user_key]["last_graph_message_id"] = graph_message.message_id
+                save_status(all_data)
         except Exception as e:
             logger.error(f"Error sending graph: {e}")
 
@@ -134,7 +173,7 @@ async def _handle_status_toggle(query, user_id, action):
             f"Текущий статус:\n"
             f"{format_status(user_status)}",
             parse_mode="Markdown",
-            reply_markup=build_keyboard(),
+            reply_markup=build_keyboard(user_status),
         )
     except Exception as e:
         logger.error(f"Error editing message: {e}")
@@ -154,7 +193,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Handle statistics separately
     if action == "statistics":
-        await _handle_statistics(query, user_id)
+        await _handle_statistics(query, user_id, context)
         return
 
     # Handle status toggle
