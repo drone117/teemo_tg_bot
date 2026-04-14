@@ -2,20 +2,27 @@
 # Build artifacts
 build/
 dist/
-target/
+*.o
+*.obj
+*.out
 
 # Dependencies
 node_modules/
-venv/
 .venv/
+venv/
 __pycache__/
 *.egg-info/
-.Python
 
-# Environment
+# Logs and temporary files
+*.log
+*.tmp
+*.swp
+*.swo
+
+# Environment variables
 .env
 .env.local
-.env.*
+*.env.*
 
 # Editors
 .vscode/
@@ -23,12 +30,21 @@ __pycache__/
 *.swp
 *.swo
 
-# OS
+# System files
 .DS_Store
 Thumbs.db
 
-# Logs
-*.log
+# Coverage reports
+coverage/
+htmlcov/
+.coverage
+
+# Python specific
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
 
 # Compressed files
 *.zip
