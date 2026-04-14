@@ -1,7 +1,7 @@
 """Graph generation module for visualizing baby schedule timeline."""
 
 import io
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import matplotlib
 matplotlib.use('Agg')
@@ -12,7 +12,7 @@ import matplotlib.dates as mdates
 # Configuration for each action type
 Y_POSITIONS = {"feeding": 3, "sleeping": 2, "woke_up": 1}
 ACTION_COLORS = {"feeding": "#FF9800", "sleeping": "#2196F3", "woke_up": "#4CAF50"}
-ACTION_LABELS = {"feeding": "Feeding", "sleeping": "Sleeping", "woke_up": "Woke Up"}
+ACTION_LABELS = {"feeding": "Кормление", "sleeping": "Сон", "woke_up": "Проснулся"}
 
 
 def generate_schedule_graph(user_status):
@@ -77,14 +77,39 @@ def generate_schedule_graph(user_status):
 
     # Formatting
     ax.set_yticks([1, 2, 3])
-    ax.set_yticklabels(['🌅 Woke Up', '😴 Sleeping', '🍼 Feeding'])
+    ax.set_yticklabels(['🌅 Проснулся', '😴 Сон', '🍼 Кормление'])
     ax.set_ylim(0.5, 3.5)
-    ax.set_xlabel('Time', fontsize=12, fontweight='bold')
-    ax.set_title('Baby Schedule Timeline', fontsize=14, fontweight='bold', pad=20)
+    ax.set_xlabel('Время', fontsize=12, fontweight='bold')
+    ax.set_title('Временная шкала режима ребёнка', fontsize=14, fontweight='bold', pad=20)
     ax.legend(loc='upper right', framealpha=0.9)
 
     # Format x-axis dates
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%m/%d %H:%M'))
+    
+    # Set x-axis limits based on data range
+    all_times = feeding_times + sleeping_times + woke_up_times
+    if all_times:
+        min_time = min(all_times)
+        max_time = max(all_times)
+        time_range = (max_time - min_time).total_seconds()
+        
+        # Add padding to the range
+        if time_range == 0:
+            # If all events are at the same time, show a 1-hour window
+            padding = timedelta(hours=1)
+            ax.set_xlim(min_time - padding, max_time + padding)
+        else:
+            padding = timedelta(seconds=time_range * 0.1)  # 10% padding
+            ax.set_xlim(min_time - padding, max_time + padding)
+        
+        # Auto-locate date ticks based on the range
+        if time_range < 3600:  # Less than 1 hour
+            ax.xaxis.set_major_locator(mdates.MinuteLocator(interval=15))
+        elif time_range < 86400:  # Less than 1 day
+            ax.xaxis.set_major_locator(mdates.HourLocator(interval=max(1, int(time_range / 3600 / 6))))
+        else:  # More than 1 day
+            ax.xaxis.set_major_locator(mdates.DayLocator(interval=max(1, int(time_range / 86400 / 5))))
+    
     plt.xticks(rotation=45, ha='right')
 
     # Grid
