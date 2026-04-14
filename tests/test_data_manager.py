@@ -124,17 +124,26 @@ class TestUpdateUserStatus:
 
     def test_update_adds_to_history(self, fresh_data_dir, monkeypatch):
         """Test that update adds entry to history."""
-        # Mock load_status to ensure clean state
-        call_count = 0
-        original_load = load_status
-        def mock_load():
-            return {}
-        monkeypatch.setattr("src.data_manager.load_status", mock_load)
+        # Use in-memory storage to track state - start completely fresh
+        memory_store = {}
         
-        update_user_status(1002, "feeding", "Fed")
-        update_user_status(1002, "sleeping", "Sleeping")
+        def mock_load():
+            return memory_store.copy()
+        
+        def mock_save(data):
+            memory_store.clear()
+            memory_store.update(data)
+        
+        monkeypatch.setattr("src.data_manager.load_status", mock_load)
+        monkeypatch.setattr("src.data_manager.save_status", mock_save)
+        
+        # Use a unique user ID to avoid conflicts with other tests
+        unique_user_id = 99999
+        
+        update_user_status(unique_user_id, "feeding", "Fed")
+        update_user_status(unique_user_id, "sleeping", "Sleeping")
 
-        result = get_user_status(1002)
+        result = get_user_status(unique_user_id)
         assert len(result["history"]) == 2
 
     def test_update_limits_history_to_limit(self, fresh_data_dir):
