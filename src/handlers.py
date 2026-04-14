@@ -125,6 +125,7 @@ async def _handle_statistics(query, user_id, context):
             all_data[user_key]["last_graph_message_id"] = None
             save_status(all_data)
 
+    # Try to edit the message, but ignore if content is the same
     try:
         await query.edit_message_text(
             stats_text,
@@ -132,9 +133,12 @@ async def _handle_statistics(query, user_id, context):
             reply_markup=build_keyboard(user_status),
         )
     except Exception as e:
-        logger.error(f"Error editing message: {e}")
-        await query.answer("Не удалось загрузить статистику!")
-        return
+        if "not modified" not in str(e).lower():
+            logger.error(f"Error editing message: {e}")
+            await query.answer("Не удалось загрузить статистику!")
+            return
+        # If message is not modified, that's okay - we still want to send the new graph
+        logger.debug("Message content unchanged, proceeding to generate new graph")
 
     # Generate and send graph
     graph_buf = generate_schedule_graph(user_status)

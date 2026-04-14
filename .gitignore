@@ -8,6 +8,7 @@ __pycache__/
 # Logs and temp files
 *.log
 *.tmp
+*.swp
 
 # Environment
 .env
@@ -28,13 +29,12 @@ dist/
 build/
 target/
 
-# Coverage reports
+# Coverage
 .coverage
-htmlcov/
 coverage/
+htmlcov/
 
-# MyPy cache
-.mypy_cache/
-# Pytest cache
+# Testing
 .pytest_cache/
+.mypy_cache/
 ```
