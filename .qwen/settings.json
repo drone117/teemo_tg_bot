@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker build *)",
+      "Bash(docker compose up *)",
+      "Bash(docker-compose *)",
+      "Bash(docker ps *)",
+      "Bash(docker kill *)",
+      "Bash(docker rm *)",
+      "Bash(docker volume *)",
+      "Bash(mkdir *)",
+      "Bash(docker compose down)",
+      "Bash(.venv/bin/pip *)",
+      "Bash(.venv/bin/pytest *)",
+      "Bash(rm *)",
+      "Bash(.venv/bin/python *)"
+    ]
+  },
+  "$version": 3
+}
