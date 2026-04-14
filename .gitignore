@@ -1,103 +1,38 @@
 ```
-# Python
+# Dependencies
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
-.Python
-env/
-venv/
-.venv/
-.ENV
-.venv.bak/
-pip-log.txt
-pip-selfcheck.json
-.python-version
 .pytest_cache/
 .mypy_cache/
-.coverage
-htmlcov/
-
-# Dependencies
-node_modules/
-julia-*/
-zig*/
-target/
-.gradle/
-
-# Logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-Icon?
-.directory
-.fuse_hidden*
-.com.apple.timemachine.donotpresent
-.AppleDouble
-.LSOverride
-
-# Environment variable configuration file
+.venv/
+venv/
 .env
 .env.local
-.env.dev
-.env.test
-.env.prod
-.env.*
-!.*env*
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# Coverage
-coverage/
-htmlcov/
-.coverage.*
+*.env.*
 
 # Build artifacts
 dist/
 build/
-*.out
-*.exe
-*.dll
-*.so
-*.a
-*.class
+target/
 
-# Compressed files
-*.zip
-*.gz
-*.tar
-*.tgz
-*.bz2
-*.xz
-*.7z
-*.rar
-*.zst
-*.lz4
-*.lzh
-*.cab
-*.arj
-*.rpm
-*.deb
-*.Z
-*.lz
-*.lzo
-*.tar.gz
-*.tar.bz2
-*.tar.xz
-*.tar.zst
+# Logs
+*.log
+
+# Editor/IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.tmp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Coverage
+coverage/
+htmlcov/
+.coverage
 ```
