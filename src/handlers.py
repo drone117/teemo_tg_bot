@@ -13,9 +13,9 @@ logger = logging.getLogger(__name__)
 
 # Status cycling options
 STATUS_OPTIONS = {
-    "feeding": ["Hungry", "Fed", "Burping"],
-    "sleeping": ["Awake", "Sleeping", "Deep Sleep"],
-    "woke_up": ["Just Woke Up", "Fresh", "Active"],
+    "feeding": ["Голоден", "Покормлен", "Срыгивает"],
+    "sleeping": ["Бодрствует", "Спит", "Глубокий сон"],
+    "woke_up": ["Только проснулся", "Отдохнувший", "Активный"],
 }
 
 ACTION_EMOJIS = {
@@ -25,19 +25,19 @@ ACTION_EMOJIS = {
 }
 
 ACTION_LABELS = {
-    "feeding": "Feeding",
-    "sleeping": "Sleeping",
-    "woke_up": "Woke up",
+    "feeding": "Кормление",
+    "sleeping": "Сон",
+    "woke_up": "Проснулся",
 }
 
 
 def build_keyboard():
     """Build the inline keyboard with action buttons."""
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("🍼 Feeding", callback_data="feeding")],
-        [InlineKeyboardButton("😴 Sleeping", callback_data="sleeping")],
-        [InlineKeyboardButton("🌅 Woke up", callback_data="woke_up")],
-        [InlineKeyboardButton("📊 View Statistics", callback_data="statistics")],
+        [InlineKeyboardButton("🍼 Кормление", callback_data="feeding")],
+        [InlineKeyboardButton("😴 Сон", callback_data="sleeping")],
+        [InlineKeyboardButton("🌅 Проснулся", callback_data="woke_up")],
+        [InlineKeyboardButton("📊 Посмотреть статистику", callback_data="statistics")],
     ])
 
 
@@ -50,10 +50,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_status = get_user_status(user_id)
 
     await update.message.reply_text(
-        f"Hi {update.message.from_user.first_name}! I'm a baby bot.\n\n"
-        f"Current status:\n"
+        f"Привет {update.message.from_user.first_name}! Я бот для отслеживания режима ребёнка.\n\n"
+        f"Текущий статус:\n"
         f"{format_status(user_status)}\n\n"
-        "Tap a button to update the status:",
+        f"Нажмите кнопку, чтобы обновить статус:",
         reply_markup=build_keyboard(),
     )
 
@@ -64,12 +64,12 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     await update.message.reply_text(
-        "Available commands:\n"
-        "/start - Show the status menu\n"
-        "/help - Show this help message\n"
-        "/status - View current status without buttons\n\n"
-        "Use the buttons to check or update baby status.\n"
-        "Each tap cycles through status options."
+        "Доступные команды:\n"
+        "/start - Показать меню статуса\n"
+        "/help - Показать эту справку\n"
+        "/status - Просмотреть текущий статус без кнопок\n\n"
+        "Используйте кнопки для проверки или обновления статуса ребёнка.\n"
+        "Каждое нажатие переключает варианты статуса."
     )
 
 
@@ -82,7 +82,7 @@ async def status_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_status = get_user_status(user_id)
 
     await update.message.reply_text(
-        f"Current baby status:\n{format_status(user_status)}"
+        f"Текущий статус ребёнка:\n{format_status(user_status)}"
     )
 
 
@@ -99,7 +99,7 @@ async def _handle_statistics(query, user_id):
         )
     except Exception as e:
         logger.error(f"Error editing message: {e}")
-        await query.answer("Could not load statistics!")
+        await query.answer("Не удалось загрузить статистику!")
         return
 
     # Generate and send graph
@@ -108,7 +108,7 @@ async def _handle_statistics(query, user_id):
         try:
             await query.message.reply_photo(
                 photo=graph_buf,
-                caption="📊 Baby's Schedule Timeline",
+                caption="📊 Временная шкала режима ребёнка",
             )
         except Exception as e:
             logger.error(f"Error sending graph: {e}")
@@ -131,14 +131,14 @@ async def _handle_status_toggle(query, user_id, action):
     try:
         await query.edit_message_text(
             f"{emoji} {label}: *{new_status}*\n\n"
-            f"Current status:\n"
+            f"Текущий статус:\n"
             f"{format_status(user_status)}",
             parse_mode="Markdown",
             reply_markup=build_keyboard(),
         )
     except Exception as e:
         logger.error(f"Error editing message: {e}")
-        await query.answer("Status updated!")
+        await query.answer("Статус обновлён!")
 
 
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -160,7 +160,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Handle status toggle
     if action not in STATUS_OPTIONS:
         logger.error(f"Unknown action: {action}")
-        await query.answer("Unknown action")
+        await query.answer("Неизвестное действие")
         return
 
     await _handle_status_toggle(query, user_id, action)
@@ -170,7 +170,7 @@ async def unknown_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle unknown commands."""
     if update.message and update.message.text and update.message.text.startswith('/'):
         await update.message.reply_text(
-            "Sorry, I don't recognize that command. Use /help to see available commands."
+            "Извините, я не распознал эту команду. Используйте /help для просмотра доступных команд."
         )
 
 
