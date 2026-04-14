@@ -7,6 +7,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     pkg-config \
     libfreetype-dev \
     libpng-dev \
+    gcc \
+    g++ \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first to leverage Docker cache
