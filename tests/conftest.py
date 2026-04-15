@@ -22,6 +22,7 @@ def fresh_data_dir(monkeypatch):
     import src.data_manager as dm
     monkeypatch.setattr(dm, "DATA_DIR", unique_dir)
     monkeypatch.setattr(dm, "DATA_FILE", data_file)
+    monkeypatch.setattr(dm, "ACTIVITIES_DATA_FILE", unique_dir / "activities.json")
 
     yield unique_dir
 
@@ -77,6 +78,7 @@ def mock_query():
     query.edit_message_text = AsyncMock()
     query.message = AsyncMock()
     query.message.reply_photo = AsyncMock()
+    query.message.chat_id = 123
     return query
 
 
@@ -87,7 +89,8 @@ def mock_update_message():
     update = MagicMock()
     update.message = MagicMock()
     update.message.from_user.id = 123
-    update.message.from_user.first_name = "TestUser"
+    update.message.first_name = "TestUser"
+    update.message.chat_id = 123
     update.message.reply_text = AsyncMock()
     return update
 

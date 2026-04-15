@@ -11,6 +11,8 @@ from src.data_manager import (
     save_status,
     get_user_status,
     update_user_status,
+    load_user_activities,
+    save_user_activities,
     DEFAULT_USER_STATUS,
     HISTORY_LIMIT,
 )
@@ -126,20 +128,32 @@ class TestUpdateUserStatus:
         """Test that update adds entry to history."""
         # Use in-memory storage to track state - start completely fresh
         memory_store = {}
-        
+
         def mock_load():
             return memory_store.copy()
-        
+
         def mock_save(data):
             memory_store.clear()
             memory_store.update(data)
-        
+
         monkeypatch.setattr("src.data_manager.load_status", mock_load)
         monkeypatch.setattr("src.data_manager.save_status", mock_save)
-        
+
         # Use a unique user ID to avoid conflicts with other tests
         unique_user_id = 99999
-        
+
+        # Start with a fresh user to avoid any state from previous tests
+        memory_store[str(unique_user_id)] = {
+            "feeding": "Unknown",
+            "feeding_time": "Never",
+            "sleeping": "Unknown",
+            "sleeping_time": "Never",
+            "woke_up": "Unknown",
+            "woke_up_time": "Never",
+            "history": [],
+            "last_updated": "Never"
+        }
+
         update_user_status(unique_user_id, "feeding", "Fed")
         update_user_status(unique_user_id, "sleeping", "Sleeping")
 
@@ -186,3 +200,54 @@ class TestUpdateUserStatus:
         assert result["feeding"] == "Burping"
         assert result["sleeping"] == "Sleeping"
         assert result["woke_up"] == "Fresh"
+
+
+class TestLoadUserActivities:
+    """Tests for load_user_activities function."""
+
+    def test_load_no_file(self, fresh_data_dir):
+        """Test loading when file doesn't exist."""
+        result = load_user_activities(123)
+        assert result == {}
+
+    def test_load_existing_user(self, fresh_data_dir):
+        """Test loading existing user data."""
+        save_user_activities(123, {"completed_activities": [], "current_activity": None})
+        result = load_user_activities(123)
+        assert "completed_activities" in result
+
+    def test_load_nonexistent_user(self, fresh_data_dir):
+        """Test loading nonexistent user returns empty."""
+        save_user_activities(999, {"completed_activities": [], "current_activity": None})
+        result = load_user_activities(888)
+        assert result == {}
+
+
+class TestSaveUserActivities:
+    """Tests for save_user_activities function."""
+
+    def test_save_creates_file(self, fresh_data_dir):
+        """Test that save creates the activities file."""
+        save_user_activities(456, {"completed_activities": [], "current_activity": None})
+        activities_file = fresh_data_dir / "activities.json"
+        assert activities_file.exists()
+
+    def test_save_and_load_roundtrip(self, fresh_data_dir):
+        """Test that saved data can be loaded back."""
+        data = {
+            "completed_activities": [
+                {"type": "feed", "start_time": "2026-04-14 08:00:00", "end_time": "2026-04-14 08:20:00", "duration_minutes": 20, "is_running": False}
+            ],
+            "current_activity": None,
+        }
+        save_user_activities(789, data)
+        result = load_user_activities(789)
+        assert len(result["completed_activities"]) == 1
+        assert result["completed_activities"][0]["type"] == "feed"
+
+    def test_save_overwrites(self, fresh_data_dir):
+        """Test that save overwrites previous data."""
+        save_user_activities(111, {"completed_activities": [{"type": "feed"}], "current_activity": None})
+        save_user_activities(111, {"completed_activities": [], "current_activity": None})
+        result = load_user_activities(111)
+        assert result["completed_activities"] == []

@@ -1,4 +1,4 @@
-"""Main application entry point for the Telegram Baby Bot."""
+"""Main application entry point for the improved Timer-Based Telegram Baby Bot."""
 
 import os
 import logging
@@ -6,7 +6,7 @@ import logging
 from telegram import Update
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters
 
-from src.handlers import (
+from src.timer_handlers import (
     start,
     help_command,
     status_command,
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 def create_application(token: str) -> Application:
-    """Create and configure the Telegram bot application.
+    """Create and configure the improved Telegram bot application.
 
     Args:
         token: The Telegram bot token.
@@ -43,13 +43,13 @@ def create_application(token: str) -> Application:
 
 
 def main():
-    """Start the bot."""
+    """Start the improved bot."""
     # Configure logging
     logging.basicConfig(
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         level=logging.INFO,
     )
-    
+
     token = os.environ.get("TELEGRAM_BOT_TOKEN")
     if not token:
         raise ValueError("TELEGRAM_BOT_TOKEN environment variable is not set")
@@ -57,7 +57,7 @@ def main():
     if token == "your_bot_token_here":
         raise ValueError("Please set your actual bot token in the .env file")
 
-    logger.info("Starting bot with token: %s...", token[:8] + "...")
+    logger.info("Starting improved timer-based bot with token: %s...", token[:8] + "...")
     application = create_application(token)
 
     # Start the bot

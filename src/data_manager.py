@@ -34,12 +34,14 @@ ACTION_EMOJIS = {
 }
 
 ACTION_LABELS = {
-    "feeding": "Feeding",
-    "sleeping": "Sleeping",
-    "woke_up": "Woke up",
+    "feeding": "Кормление",
+    "sleeping": "Сон",
+    "woke_up": "Проснулся",
 }
 
 HISTORY_LIMIT = 50
+
+ACTIVITIES_DATA_FILE = DATA_DIR / "activities.json"
 
 
 def load_status():
@@ -100,3 +102,34 @@ def update_user_status(user_id, action, status_value):
 
     save_status(all_data)
     return all_data[user_key]
+
+
+def load_user_activities(user_id: int) -> dict:
+    """Load timer-based activity data for a specific user."""
+    if not ACTIVITIES_DATA_FILE.exists():
+        return {}
+
+    try:
+        with open(ACTIVITIES_DATA_FILE) as f:
+            all_data = json.load(f)
+        return all_data.get(str(user_id), {})
+    except (json.JSONDecodeError, IOError) as e:
+        logger.error(f"Error loading activities file: {e}")
+        return {}
+
+
+def save_user_activities(user_id: int, data: dict):
+    """Save timer-based activity data for a specific user."""
+    try:
+        all_data = {}
+        if ACTIVITIES_DATA_FILE.exists():
+            with open(ACTIVITIES_DATA_FILE) as f:
+                all_data = json.load(f)
+
+        all_data[str(user_id)] = data
+
+        DATA_DIR.mkdir(parents=True, exist_ok=True)
+        with open(ACTIVITIES_DATA_FILE, "w") as f:
+            json.dump(all_data, f, indent=2)
+    except IOError as e:
+        logger.error(f"Error saving activities file: {e}")

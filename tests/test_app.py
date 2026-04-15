@@ -1,11 +1,11 @@
-"""Tests for src/app.py module."""
+"""Tests for src/app_timer.py module."""
 
 import os
 from unittest.mock import patch, MagicMock
 
 import pytest
 
-from src.app import create_application, main
+from src.app_timer import create_application, main
 
 
 class TestCreateApplication:
@@ -46,9 +46,9 @@ class TestMain:
     def test_main_calls_run_polling(self):
         """Test that main calls run_polling on the application."""
         mock_app = MagicMock()
-        with patch("src.app.create_application", return_value=mock_app):
+        with patch("src.app_timer.create_application", return_value=mock_app):
             with patch.dict(os.environ, {"TELEGRAM_BOT_TOKEN": "test_token"}, clear=True):
-                with patch("src.app.Update") as mock_update:
+                with patch("src.app_timer.Update") as mock_update:
                     mock_update.ALL_TYPES = MagicMock()
                     main()
 
