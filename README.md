@@ -1,91 +1,66 @@
 # Telegram Baby Bot
 
-A simple Telegram bot to track baby care activities (feeding and sleeping status) with per-user tracking.
+A Telegram bot for tracking baby care activities (feeding, sleeping, wake time) with per-user timer-based tracking and visual schedule graphs.
 
 ## Features
 
-- **🍼 Feeding Tracker**: Cycles through `Hungry → Fed → Burping`
-- **😴 Sleeping Tracker**: Cycles through `Awake → Sleeping → Deep Sleep`
-- **🌅 Woke Up Tracker**: Cycles through `Just Woke Up → Fresh → Active`
-- **📊 Statistics View**: Shows update counts and recent history log
-- **📈 Schedule Graph**: Visual timeline graph of baby's sleep and feeding schedule
-- **Per-User Tracking**: Each user has their own independent status
-- **Timestamps**: Shows when status was last updated
-- **Inline Buttons**: Easy status updates without typing commands
-- **Error Handling**: Graceful error logging and recovery
+- **Timer-based tracking** — start/stop timers for each activity instead of confusing status cycles
+- **Smart suggestions** — contextual tips based on activity duration and natural sequences
+- **Visual schedule graph** — Plotly-powered timeline of baby's day (mobile-optimized)
+- **Per-user tracking** — each user has independent activity history
+- **Persistent storage** — activity data survives bot restarts
+- **Inline keyboard** — simple tap-based interface, no typing needed
 
 ## Commands
 
 | Command | Description |
 |---------|-------------|
-| `/start` | Show the status menu with inline buttons |
-| `/help` | Display available commands |
+| `/start` | Show status menu with activity buttons |
+| `/help` | Display available commands and usage tips |
 | `/status` | View current status without buttons |
+
+## How It Works
+
+The bot uses a simple **start/stop timer** model:
+
+1. Press a button to start an activity (feeding, sleep, or wake time)
+2. The bot shows a running timer with duration
+3. Press stop when the activity ends
+4. The bot suggests what to do next based on patterns
 
 ## Setup
 
 ### Prerequisites
 
-- Docker and Docker Compose
+- Docker and Docker Compose (or Python 3.13+)
 - A Telegram bot token from [@BotFather](https://t.me/BotFather)
-
-### Configuration
-
-1. Clone or copy the project to your machine
-2. Edit the `.env` file and add your bot token:
-   ```env
-   TELEGRAM_BOT_TOKEN=your_actual_bot_token_here
-   ```
 
 ### Running with Docker Compose
 
 ```bash
+# Set your bot token in .env
+echo "TELEGRAM_BOT_TOKEN=your_token_here" > .env
+
+# Start
 docker-compose up -d
 ```
 
 ### Running Locally
 
 ```bash
-# Create a virtual environment
 python -m venv .venv
 source .venv/bin/activate
-
-# Install dependencies
 pip install -r requirements.txt
-
-# Set environment variable
-export TELEGRAM_BOT_TOKEN=your_actual_bot_token_here
-
-# Run the bot
-python bot.py
+export TELEGRAM_BOT_TOKEN=your_token_here
+python src/app_timer.py
 ```
 
 ## Data Storage
 
-Status data is stored in `data/status.json` with per-user tracking:
+Activity data is stored in `data/` (gitignored):
 
-```json
-{
-  "123456789": {
-    "feeding": "Fed",
-    "feeding_time": "2026-04-14 10:30:00",
-    "sleeping": "Sleeping",
-    "sleeping_time": "2026-04-14 09:15:00",
-    "woke_up": "Fresh",
-    "woke_up_time": "2026-04-14 08:00:00",
-    "last_updated": "2026-04-14 10:30:00",
-    "history": [
-      {
-        "action": "feeding",
-        "status": "Fed",
-        "time": "2026-04-14 10:30:00",
-        "emoji": "🍼",
-        "label": "Feeding"
-      }
-    ]
-  }
-}
-```
+- `data/activities.json` — timer-based activity history per user
+- `data/status.json` — legacy status data (kept for backward compatibility)
 
 The `data/` directory is persisted via Docker volume mapping.
 
@@ -93,41 +68,36 @@ The `data/` directory is persisted via Docker volume mapping.
 
 ```
 tg_baby_bot/
-├── bot.py              # Main bot application
-├── requirements.txt    # Python dependencies
-├── Dockerfile          # Container definition
-├── docker-compose.yml  # Docker orchestration
-├── .env               # Environment variables (DO NOT COMMIT)
-├── .gitignore         # Git ignore rules
-└── data/              # Persistent storage for status
+├── src/
+│   ├── app_timer.py              # Bot entry point and app configuration
+│   ├── timer_handlers.py         # Telegram command/callback handlers
+│   ├── timer_manager.py          # Activity timer logic and smart suggestions
+│   ├── data_manager.py           # JSON file persistence
+│   ├── duration_calculator.py    # Russian time formatting utilities
+│   ├── graph_generator_plotly.py # Timeline graph generation (Plotly)
+│   └── graph_styles.py           # Graph color palette and layout constants
+├── tests/                        # Test suite
+├── Dockerfile
+├── docker-compose.yml
+├── requirements.txt
+└── pytest.ini
 ```
 
 ## Dependencies
 
-- Python 3.12
+- Python 3.13
 - python-telegram-bot 21.10
-- matplotlib 3.9.0
+- plotly >= 5.18
+- kaleido >= 0.2.1 (image rendering)
 - Pillow 10.4.0
 
 ## Testing
 
 ```bash
-# Install test dependencies
-pip install -r requirements.txt
-
-# Run tests
-pytest
-
-# Run tests with verbose output
 pytest -v
+```
 
-# Run tests with coverage
-pytest --cov=bot
-
-## Security
-
-- **Never commit your `.env` file** - it's listed in `.gitignore` for a reason
-- If your bot token is exposed, revoke it immediately via [@BotFather](https://t.me/BotFather)
+Note: graph rendering tests are skipped unless Chrome is available (required by kaleido).
 
 ## License
 
